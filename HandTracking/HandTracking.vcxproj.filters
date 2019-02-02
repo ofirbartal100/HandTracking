@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="D:\Recources\Projects\Opencv\opencv\sources\samples\cpp\videocapture_basic.cpp">
+    <ClCompile Include="videocapture_basic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
