@@ -1,2 +1,0 @@
-﻿  videocapture_basic.cpp
-d:\recources\projects\opencv\opencv\sources\samples\cpp\videocapture_basic.cpp(8): fatal error C1083: Cannot open include file: 'opencv2/core.hpp': No such file or directory
