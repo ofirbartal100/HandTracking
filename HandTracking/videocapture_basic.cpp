@@ -19,7 +19,7 @@ using namespace std;
 
 void detectAndDisplay(Mat frame);
 
-CascadeClassifier face_cascade;
+CascadeClassifier hand_cascade;
 
 int main(int, char**)
 {
@@ -41,7 +41,7 @@ int main(int, char**)
 	}
 
 	//-- 1. Load the cascades
-	if (!face_cascade.load("C:\\Users\\ofir\\Desktop\\temp\\palm.xml"))
+	if (!hand_cascade.load("C:\\Users\\ofir\\Desktop\\temp\\palm_v4.xml"))
 	{
 		cout << "--(!)Error loading face cascade\n";
 		return -1;
@@ -71,30 +71,38 @@ int main(int, char**)
 	return 0;
 }
 
+Mat rotate_image(Mat frame_gray, double angle)
+{
+	// get rotation matrix for rotating the image around its center in pixel coordinates
+	cv::Point2f center((frame_gray.cols - 1) / 2.0, (frame_gray.rows - 1) / 2.0);
+	cv::Mat rot = cv::getRotationMatrix2D(center, angle, 1.0);
+	// determine bounding rectangle, center not relevant
+	cv::Rect2f bbox = cv::RotatedRect(cv::Point2f(), frame_gray.size(), angle).boundingRect2f();
+	// adjust transformation matrix
+	rot.at<double>(0, 2) += bbox.width / 2.0 - frame_gray.cols / 2.0;
+	rot.at<double>(1, 2) += bbox.height / 2.0 - frame_gray.rows / 2.0;
+
+	cv::Mat dst;
+	cv::warpAffine(frame_gray, dst, rot, bbox.size());
+	return dst;
+}
+
 void detectAndDisplay(Mat frame)
 {
-	Mat frame_gray;
+	Mat frame_gray,rotated;
 	cv::cvtColor(frame, frame_gray, CV_BGR2GRAY);
 	cv::equalizeHist(frame_gray, frame_gray);
+
+	rotated = rotate_image(frame_gray, 90);
+
 	//-- Detect faces
-	std::vector<Rect> faces;
-	face_cascade.detectMultiScale(frame_gray, faces);
-	for (size_t i = 0; i < faces.size(); i++)
+	std::vector<Rect> hands;
+	hand_cascade.detectMultiScale(rotated, hands);
+	for (size_t i = 0; i < hands.size(); i++)
 	{
 		//Point center(faces[i].x + faces[i].width / 2, faces[i].y + faces[i].height / 2);
-		rectangle(frame, faces[i], Scalar(255, 0, 255), 4);
-		//ellipse(frame, center, Size(faces[i].width / 2, faces[i].height / 2), 0, 0, 360, Scalar(255, 0, 255), 4);
-		//Mat faceROI = frame_gray(faces[i]);
-		//-- In each face, detect eyes
-		/*std::vector<Rect> eyes;
-		eyes_cascade.detectMultiScale(faceROI, eyes);
-		for (size_t j = 0; j < eyes.size(); j++)
-		{
-		Point eye_center(faces[i].x + eyes[j].x + eyes[j].width / 2, faces[i].y + eyes[j].y + eyes[j].height / 2);
-		int radius = cvRound((eyes[j].width + eyes[j].height)*0.25);
-		circle(frame, eye_center, radius, Scalar(255, 0, 0), 4);
-		}*/
+		rectangle(rotated, hands[i], Scalar(255, 0, 255), 4);
 	}
 	//-- Show what you got
-	imshow("Capture - Face detection", frame);
+	imshow("Capture - Hand detection", rotated);
 }
